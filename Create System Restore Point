@@ -1,1 +1,2 @@
+Enable-ComputerRestore -Drive "C:\"
 Checkpoint-Computer -Description "<test restore point>" -RestorePointType "MODIFY_SETTINGS" -Verbose
