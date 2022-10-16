@@ -1,0 +1,38 @@
+$Criteria="IsInstalled=0" 
+#EE
+     $resultcode= @{0="Not Started"; 1="In Progress"; 2="Succeeded"; 
+     3="Succeeded With Errors"; 4="Failed" ; 5="Aborted" }
+
+$updateSession = new-object -com "Microsoft.Update.Session"
+
+write-progress -Activity "Updating" -Status "Checking available updates" 
+$Searcher = New-Object -ComObject Microsoft.Update.Searcher 
+$updates= $Searcher.Search($Criteria).Updates
+
+if ($Updates.Count -eq 0)  { "There are no applicable updates."}   
+else { 
+
+   $downloader = $updateSession.CreateUpdateDownloader()   
+   $downloader.Updates = $Updates  
+
+   $date = get-date
+   write-progress -Activity 'Updating' -Status "Downloading $($downloader.Updates.count) updates started at $date"
+   $Result= $downloader.Download()  
+
+   if (($Result.Hresult -eq 0) –and (($result.resultCode –eq 2) -or ($result.resultCode –eq 3)) ) {
+
+   $updatesToInstall = New-object -com "Microsoft.Update.UpdateColl"
+
+   $Updates | where {$_.isdownloaded -and $_.title -notlike "*Internet Explorer 9*" -and $_.title -notlike "*Internet Explorer 10*"} | foreach-Object {$updatesToInstall.Add($_) | out-null }
+   $installer = $updateSession.CreateUpdateInstaller()
+   $installer.Updates = $updatesToInstall
+
+
+   write-progress -Activity 'Updating' -Status "Installing $($Installer.Updates.count) updates started at $date"
+    $installationResult = $installer.Install()
+    $Global:counter=-1
+    $installer.updates | select Title,EulaAccepted,@{label='Result';
+                           expression={$ResultCode[$installationResult.GetUpdateResult($Global:Counter++).resultCode ] }}  
+    shutdown.exe /t 5 /r
+} 
+}
