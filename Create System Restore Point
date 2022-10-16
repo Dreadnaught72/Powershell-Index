@@ -1,2 +1,3 @@
-Enable-ComputerRestore -Drive "C:\"
+ If ($Null -eq $(Get-ComputerRestorePoint)) {Enable-ComputerRestore -Drive "C:\"}
+ vssadmin resize shadowstorage /for=C: /on=C: /maxsize=10%
 Checkpoint-Computer -Description "<test restore point>" -RestorePointType "MODIFY_SETTINGS" -Verbose
