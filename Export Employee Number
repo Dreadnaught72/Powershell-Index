@@ -1,0 +1,27 @@
+# Import the Active Directory module
+Import-Module ActiveDirectory
+ 
+# Specify the base DN (Distinguished Name) of the site OU
+$baseOU = "OU=Sites,DC=dcleisure,DC=co,DC=uk"  # Replace with the actual DN of the site OU
+ 
+# Get all users in the specified OU and its sub-OUs
+$users = Get-ADUser -SearchBase $baseOU -Filter * -Properties employeeNumber
+ 
+# Create a collection to store the results
+$results = @()
+ 
+# Iterate through each user and check if the employeeNumber attribute is populated
+foreach ($user in $users) {
+    $result = [PSCustomObject]@{
+        SamAccountName = $user.SamAccountName
+        EmployeeNumber = $user.employeeNumber
+        IsPopulated    = if ($user.employeeNumber) { "Yes" } else { "No" }
+    }
+    $results += $result
+}
+ 
+# Export the results to a CSV file in C:\Temp
+$csvPath = "C:\Temp\EmployeeNumberCheck.csv"
+$results | Export-Csv -Path $csvPath -NoTypeInformation
+ 
+Write-Output "Results have been exported to $csvPath"
