@@ -1,0 +1,1 @@
+﻿Get-AdmPwdPassword -LAP-2WGYSL3
